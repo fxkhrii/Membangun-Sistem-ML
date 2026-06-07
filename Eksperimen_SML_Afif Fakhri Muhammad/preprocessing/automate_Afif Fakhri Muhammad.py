@@ -28,6 +28,8 @@ def run_pipeline(input_path, output_path):
     df_final = X.copy()
     df_final['RainTomorrow'] = df['RainTomorrow'].values
 
+    import os
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
     df_final.to_csv(output_path, index=False)
 
 
