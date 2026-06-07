@@ -8,6 +8,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    defaults:
+      run:
+        working-directory: "Eksperimen_SML_Afif Fakhri Muhammad"
 
     steps:
       - name: Checkout repo
@@ -24,7 +30,7 @@ jobs:
 
       - name: Run preprocessing
         run: |
-          python preprocessing/automate_Afif Fakhri Muhammad.py
+          python "preprocessing/automate_Afif Fakhri Muhammad.py"
 
       - name: Commit result
         run: |
