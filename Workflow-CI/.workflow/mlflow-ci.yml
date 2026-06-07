@@ -74,7 +74,7 @@ jobs:
         working-directory: Workflow-CI/MLProject
         run: |
           mlflow models build-docker \
-            -m "mlruns/0/${{ steps.get_run_id.outputs.run_id }}/artifacts/model" \
+            -m "runs:/${{ steps.get_run_id.outputs.run_id }}/model" \
             -n "sistem-ml-model" \
             --enable-mlserver
 
