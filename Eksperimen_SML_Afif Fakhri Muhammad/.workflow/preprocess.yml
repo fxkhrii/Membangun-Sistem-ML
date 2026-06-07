@@ -1,0 +1,36 @@
+name: Auto Preprocessing
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install pandas scikit-learn numpy
+
+      - name: Run preprocessing
+        run: |
+          python preprocessing/automate_Nama-siswa.py
+
+      - name: Commit result
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+
+          git add preprocessing/namadataset_preprocessing/
+          git commit -m "auto update processed dataset" || echo "no changes"
+          git push
