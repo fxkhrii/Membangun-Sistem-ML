@@ -73,9 +73,10 @@ jobs:
       - name: Build Docker Model
         working-directory: Workflow-CI/MLProject
         run: |
-          mlflow models build-docker \
-            -m "runs:/${{ steps.get_run_id.outputs.run_id }}/model" \
-            -n "sistem-ml-model"
+          RUN_ID=${{ steps.get_run_id.outputs.run_id }}
+          EXPERIMENT_ID=$(python -c "import mlflow; run = mlflow.get_run('${RUN_ID}'); print(run.info.experiment_id)")
+          cp -r mlruns/${EXPERIMENT_ID}/${RUN_ID}/artifacts/model ./model
+          docker build -t sistem-ml-model .
 
       # Step 10: Log in to Docker Hub
       - name: Log in to Docker Hub
