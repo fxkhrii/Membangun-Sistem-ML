@@ -1,0 +1,23 @@
+digest: 9395d405
+name: dataset
+profile: '{"num_rows": 113754, "num_elements": 2502588}'
+schema: '{"mlflow_colspec": [{"type": "double", "name": "Date", "required": true},
+  {"type": "double", "name": "Location", "required": true}, {"type": "double", "name":
+  "MinTemp", "required": true}, {"type": "double", "name": "MaxTemp", "required":
+  true}, {"type": "double", "name": "Rainfall", "required": true}, {"type": "double",
+  "name": "Evaporation", "required": true}, {"type": "double", "name": "Sunshine",
+  "required": true}, {"type": "double", "name": "WindGustDir", "required": true},
+  {"type": "double", "name": "WindGustSpeed", "required": true}, {"type": "double",
+  "name": "WindDir9am", "required": true}, {"type": "double", "name": "WindDir3pm",
+  "required": true}, {"type": "double", "name": "WindSpeed9am", "required": true},
+  {"type": "double", "name": "WindSpeed3pm", "required": true}, {"type": "double",
+  "name": "Humidity9am", "required": true}, {"type": "double", "name": "Humidity3pm",
+  "required": true}, {"type": "double", "name": "Pressure9am", "required": true},
+  {"type": "double", "name": "Pressure3pm", "required": true}, {"type": "double",
+  "name": "Cloud9am", "required": true}, {"type": "double", "name": "Cloud3pm", "required":
+  true}, {"type": "double", "name": "Temp9am", "required": true}, {"type": "double",
+  "name": "Temp3pm", "required": true}, {"type": "double", "name": "RainToday", "required":
+  true}]}'
+source: '{"tags": {"mlflow.user": "USER", "mlflow.source.name": "modelling.py", "mlflow.source.type":
+  "LOCAL", "mlflow.source.git.commit": "674eb5a683e02c91c6caf3fc8c95287d9d49d604"}}'
+source_type: code

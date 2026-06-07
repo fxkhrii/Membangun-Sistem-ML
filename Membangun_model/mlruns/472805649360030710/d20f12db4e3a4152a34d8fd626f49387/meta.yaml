@@ -1,0 +1,15 @@
+artifact_uri: file:///D:/Projek/Membangun-Sistem-ML/Membangun_model/mlruns/472805649360030710/d20f12db4e3a4152a34d8fd626f49387/artifacts
+end_time: 1780832064047
+entry_point_name: ''
+experiment_id: '472805649360030710'
+lifecycle_stage: active
+run_id: d20f12db4e3a4152a34d8fd626f49387
+run_name: Basic_RandomForest
+run_uuid: d20f12db4e3a4152a34d8fd626f49387
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1780832031486
+status: 3
+tags: []
+user_id: USER

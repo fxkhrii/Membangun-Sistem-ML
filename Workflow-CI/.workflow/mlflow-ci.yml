@@ -1,0 +1,98 @@
+name: MLflow CI - Training & Docker Build
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'Workflow-CI/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  mlflow-ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout repository
+      - name: Run actions/checkout@v4
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Python 3.12.7
+      - name: Set up Python 3.12.7
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12.7'
+
+      # Step 3: Check Env
+      - name: Check Env
+        run: |
+          python --version
+          pip --version
+          echo "Working directory: $(pwd)"
+          ls -la Workflow-CI/MLProject/
+
+      # Step 4: Install dependencies
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install mlflow==2.19.0 scikit-learn pandas numpy
+
+      # Step 5: Run mlflow project
+      - name: Run mlflow project
+        working-directory: Workflow-CI/MLProject
+        run: |
+          mlflow run . --env-manager=local --experiment-name="CI_Modelling_SML"
+
+      # Step 6: Get latest MLflow run_id
+      - name: Get latest MLflow run_id
+        working-directory: Workflow-CI/MLProject
+        id: get_run_id
+        run: |
+          RUN_ID=$(cat latest_run_id.txt)
+          echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
+          echo "Latest MLflow Run ID: $RUN_ID"
+
+      # Step 7: Install Python dependencies (untuk upload & docker)
+      - name: Install Python dependencies
+        run: |
+          pip install virtualenv
+
+      # Step 8: Upload to GitHub Repository (pengganti Google Drive)
+      - name: Upload to GitHub Repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          cd Workflow-CI/MLProject
+          git add mlruns/ latest_run_id.txt || true
+          git commit -m "CI: Upload MLflow artifacts from run ${{ steps.get_run_id.outputs.run_id }}" || echo "No changes to commit"
+          git push || echo "Nothing to push"
+
+      # Step 9: Build Docker Model
+      - name: Build Docker Model
+        working-directory: Workflow-CI/MLProject
+        run: |
+          mlflow models build-docker \
+            -m "mlruns/0/${{ steps.get_run_id.outputs.run_id }}/artifacts/model" \
+            -n "sistem-ml-model" \
+            --enable-mlserver
+
+      # Step 10: Log in to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Step 11: Tag Docker Image
+      - name: Tag Docker Image
+        run: |
+          docker tag sistem-ml-model ${{ secrets.DOCKER_USERNAME }}/sistem-ml-model:latest
+          docker tag sistem-ml-model ${{ secrets.DOCKER_USERNAME }}/sistem-ml-model:${{ steps.get_run_id.outputs.run_id }}
+
+      # Step 12: Push Docker Image
+      - name: Push Docker Image
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/sistem-ml-model:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/sistem-ml-model:${{ steps.get_run_id.outputs.run_id }}
