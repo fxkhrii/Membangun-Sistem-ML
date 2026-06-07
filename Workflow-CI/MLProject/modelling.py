@@ -31,6 +31,9 @@ def train_model():
         print(f"CI Model Accuracy: {score:.4f}")
         print(f"MLflow Run ID: {run.info.run_id}")
         
+        # Log model explicitly to ensure 'model' artifact folder exists
+        mlflow.sklearn.log_model(model, "model")
+        
         # Simpan run_id ke file agar bisa diambil oleh CI step berikutnya
         with open("latest_run_id.txt", "w") as f:
             f.write(run.info.run_id)
