@@ -75,8 +75,7 @@ jobs:
         run: |
           mlflow models build-docker \
             -m "runs:/${{ steps.get_run_id.outputs.run_id }}/model" \
-            -n "sistem-ml-model" \
-            --enable-mlserver
+            -n "sistem-ml-model"
 
       # Step 10: Log in to Docker Hub
       - name: Log in to Docker Hub
