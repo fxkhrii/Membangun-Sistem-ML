@@ -1,0 +1,91 @@
+name: MLflow CI - Training & Docker Build
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  mlflow-ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout repository
+      - name: Run actions/checkout@v4
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Python 3.12.7
+      - name: Set up Python 3.12.7
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12.7'
+
+      # Step 3: Check Env
+      - name: Check Env
+        run: |
+          python --version
+          pip --version
+          echo "Working directory: $(pwd)"
+          ls -la MLProject/
+
+      # Step 4: Install dependencies
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install mlflow==2.19.0 scikit-learn pandas numpy
+
+      # Step 5: Run mlflow project
+      - name: Run mlflow project
+        working-directory: MLProject
+        run: |
+          mlflow run . --env-manager=local --experiment-name="CI_Modelling_SML"
+
+      # Step 6: Get latest MLflow run_id
+      - name: Get latest MLflow run_id
+        working-directory: MLProject
+        id: get_run_id
+        run: |
+          RUN_ID=$(cat latest_run_id.txt)
+          echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
+          echo "Latest MLflow Run ID: $RUN_ID"
+
+      # Step 7: Upload to GitHub Repository
+      - name: Upload MLflow artifacts to GitHub
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          cd MLProject
+          git add mlruns/ latest_run_id.txt || true
+          git commit -m "CI: Upload MLflow artifacts from run ${{ steps.get_run_id.outputs.run_id }}" || echo "No changes to commit"
+          git push || echo "Nothing to push"
+
+      # Step 8: Build Docker Model
+      - name: Build Docker Model
+        working-directory: MLProject
+        run: |
+          RUN_ID=${{ steps.get_run_id.outputs.run_id }}
+          EXPERIMENT_ID=$(python -c "import mlflow; mlflow.set_tracking_uri('mlruns'); run = mlflow.get_run('${RUN_ID}'); print(run.info.experiment_id)")
+          cp -r mlruns/${EXPERIMENT_ID}/${RUN_ID}/artifacts/model ./model
+          docker build -t sistem-ml-model .
+
+      # Step 9: Log in to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Step 10: Tag Docker Image
+      - name: Tag Docker Image
+        run: |
+          docker tag sistem-ml-model ${{ secrets.DOCKER_USERNAME }}/sistem-ml-model:latest
+          docker tag sistem-ml-model ${{ secrets.DOCKER_USERNAME }}/sistem-ml-model:${{ steps.get_run_id.outputs.run_id }}
+
+      # Step 11: Push Docker Image
+      - name: Push Docker Image
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/sistem-ml-model:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/sistem-ml-model:${{ steps.get_run_id.outputs.run_id }}
